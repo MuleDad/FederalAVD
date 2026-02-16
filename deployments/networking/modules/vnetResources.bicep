@@ -23,34 +23,22 @@ param timeStamp string
 
 var azureCloud = environment().name
 
-var defaultUDRs = (azureCloud == 'AzureCloud')
+var baseUDRs = [
+  {
+    name: 'AVDServiceTraffic'
+    properties: {
+      addressPrefix: 'WindowsVirtualDesktop'
+      hasBgpOverride: true
+      nextHopType: 'Internet'
+    }
+  }
+]
+
+var commercialCloudUDRs = (azureCloud == 'AzureCloud')
   ? [
+      // https://learn.microsoft.com/en-us/troubleshoot/azure/virtual-machines/windows/custom-routes-enable-kms-activation            
       {
-        name: 'AVDServiceTraffic'
-        properties: {
-          addressPrefix: 'WindowsVirtualDesktop'
-          hasBgpOverride: true
-          nextHopType: 'Internet'
-        }
-      }
-      {
-        name: 'AVDStunInfraTurnRelayTraffic'
-        properties: {
-          addressPrefix: '20.202.0.0/16'
-          hasBgpOverride: true
-          nextHopType: 'Internet'
-        }
-      }
-      {
-        name: 'AVDTurnRelayTraffic'
-        properties: {
-          addressPrefix: '51.5.0.0/16'
-          hasBgpOverride: true
-          nextHopType: 'Internet'
-        }
-      }
-      {
-        name: 'DirectRouteToKMS'
+        name: 'DirectRouteToKMS01'
         properties: {
           addressPrefix: '20.118.99.224/32'
           hasBgpOverride: true
@@ -58,7 +46,7 @@ var defaultUDRs = (azureCloud == 'AzureCloud')
         }
       }
       {
-        name: 'DirectRouteToKMS01'
+        name: 'DirectRouteToKMS02'
         properties: {
           addressPrefix: '40.83.235.53/32'
           hasBgpOverride: true
@@ -66,7 +54,7 @@ var defaultUDRs = (azureCloud == 'AzureCloud')
         }
       }
       {
-        name: 'DirectRouteToKMS02'
+        name: 'DirectRouteToKMS03'
         properties: {
           addressPrefix: '23.102.135.246/32'
           hasBgpOverride: true
@@ -74,42 +62,39 @@ var defaultUDRs = (azureCloud == 'AzureCloud')
         }
       }
     ]
-  : (azureCloud == 'AzureUSGovernment')
-      ? [
-          {
-            name: 'AVDServiceTraffic'
-            properties: {
-              addressPrefix: 'WindowsVirtualDesktop'
-              hasBgpOverride: true
-              nextHopType: 'Internet'
-            }
-          }
-          {
-            name: 'AVDStunTurnTraffic'
-            properties: {
-              addressPrefix: '20.202.0.0/16'
-              hasBgpOverride: true
-              nextHopType: 'Internet'
-            }
-          }
-          {
-            name: 'DirectRouteToKMS'
-            properties: {
-              addressPrefix: '23.97.0.13/32'
-              hasBgpOverride: true
-              nextHopType: 'Internet'
-            }
-          }
-          {
-            name: 'DirectRouteToKMS01'
-            properties: {
-              addressPrefix: '52.126.105.2/32'
-              hasBgpOverride: true
-              nextHopType: 'Internet'
-            }
-          }
-        ]
-      : []
+  : []
+
+var governmentCloudUDRs = (azureCloud == 'AzureUSGovernment')
+  ? [
+      {
+        name: 'AVDStunTraffic'
+        properties: {
+          addressPrefix: '20.202.0.0/16'
+          hasBgpOverride: true
+          nextHopType: 'Internet'
+        }
+      }
+      // https://learn.microsoft.com/en-us/troubleshoot/azure/virtual-machines/windows/custom-routes-enable-kms-activation
+      {
+        name: 'DirectRouteToKMS01'
+        properties: {
+          addressPrefix: '23.97.0.13/32'
+          hasBgpOverride: true
+          nextHopType: 'Internet'
+        }
+      }
+      {
+        name: 'DirectRouteToKMS02'
+        properties: {
+          addressPrefix: '52.126.105.2/32'
+          hasBgpOverride: true
+          nextHopType: 'Internet'
+        }
+      }
+    ]
+  : []
+
+var defaultUDRs = union(baseUDRs, commercialCloudUDRs, governmentCloudUDRs)
 
 var snetHosts = [
   {

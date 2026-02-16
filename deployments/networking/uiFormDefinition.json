@@ -359,6 +359,14 @@
 									}
 								},
 								{
+									"name": "includeAvdBypassRoutes",
+									"type": "Microsoft.Common.CheckBox",
+									"label": "Include AVD Service Bypass Routes",
+									"defaultValue": false,
+									"toolTip": "When enabled, adds routes to allow AVD service traffic to bypass the NVA.",
+									"visible": "[equals(steps('virtualNetwork').deploy.defaultRouteType, 'nva')]"
+								},
+								{
 									"name": "dnsServerTextBlock",
 									"type": "Microsoft.Common.TextBlock",
 									"options": {

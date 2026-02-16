@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.39.26.7824",
-      "templateHash": "13875584560081833410"
+      "version": "0.40.2.10011",
+      "templateHash": "4236809172656667468"
     }
   },
   "parameters": {
@@ -1006,8 +1006,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.39.26.7824",
-              "templateHash": "7119484120088273096"
+              "version": "0.40.2.10011",
+              "templateHash": "9412677567640400252"
             }
           },
           "parameters": {
@@ -1177,8 +1177,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.39.26.7824",
-                      "templateHash": "2718392506129921909"
+                      "version": "0.40.2.10011",
+                      "templateHash": "16688373492870187177"
                     }
                   },
                   "parameters": {
@@ -1251,7 +1251,19 @@
                   },
                   "variables": {
                     "azureCloud": "[environment().name]",
-                    "defaultUDRs": "[if(equals(variables('azureCloud'), 'AzureCloud'), createArray(createObject('name', 'AVDServiceTraffic', 'properties', createObject('addressPrefix', 'WindowsVirtualDesktop', 'hasBgpOverride', true(), 'nextHopType', 'Internet')), createObject('name', 'AVDStunInfraTurnRelayTraffic', 'properties', createObject('addressPrefix', '20.202.0.0/16', 'hasBgpOverride', true(), 'nextHopType', 'Internet')), createObject('name', 'AVDTurnRelayTraffic', 'properties', createObject('addressPrefix', '51.5.0.0/16', 'hasBgpOverride', true(), 'nextHopType', 'Internet')), createObject('name', 'DirectRouteToKMS', 'properties', createObject('addressPrefix', '20.118.99.224/32', 'hasBgpOverride', true(), 'nextHopType', 'Internet')), createObject('name', 'DirectRouteToKMS01', 'properties', createObject('addressPrefix', '40.83.235.53/32', 'hasBgpOverride', true(), 'nextHopType', 'Internet')), createObject('name', 'DirectRouteToKMS02', 'properties', createObject('addressPrefix', '23.102.135.246/32', 'hasBgpOverride', true(), 'nextHopType', 'Internet'))), if(equals(variables('azureCloud'), 'AzureUSGovernment'), createArray(createObject('name', 'AVDServiceTraffic', 'properties', createObject('addressPrefix', 'WindowsVirtualDesktop', 'hasBgpOverride', true(), 'nextHopType', 'Internet')), createObject('name', 'AVDStunTurnTraffic', 'properties', createObject('addressPrefix', '20.202.0.0/16', 'hasBgpOverride', true(), 'nextHopType', 'Internet')), createObject('name', 'DirectRouteToKMS', 'properties', createObject('addressPrefix', '23.97.0.13/32', 'hasBgpOverride', true(), 'nextHopType', 'Internet')), createObject('name', 'DirectRouteToKMS01', 'properties', createObject('addressPrefix', '52.126.105.2/32', 'hasBgpOverride', true(), 'nextHopType', 'Internet'))), createArray()))]",
+                    "baseUDRs": [
+                      {
+                        "name": "AVDServiceTraffic",
+                        "properties": {
+                          "addressPrefix": "WindowsVirtualDesktop",
+                          "hasBgpOverride": true,
+                          "nextHopType": "Internet"
+                        }
+                      }
+                    ],
+                    "commercialCloudUDRs": "[if(equals(variables('azureCloud'), 'AzureCloud'), createArray(createObject('name', 'DirectRouteToKMS01', 'properties', createObject('addressPrefix', '20.118.99.224/32', 'hasBgpOverride', true(), 'nextHopType', 'Internet')), createObject('name', 'DirectRouteToKMS02', 'properties', createObject('addressPrefix', '40.83.235.53/32', 'hasBgpOverride', true(), 'nextHopType', 'Internet')), createObject('name', 'DirectRouteToKMS03', 'properties', createObject('addressPrefix', '23.102.135.246/32', 'hasBgpOverride', true(), 'nextHopType', 'Internet'))), createArray())]",
+                    "governmentCloudUDRs": "[if(equals(variables('azureCloud'), 'AzureUSGovernment'), createArray(createObject('name', 'AVDStunTraffic', 'properties', createObject('addressPrefix', '20.202.0.0/16', 'hasBgpOverride', true(), 'nextHopType', 'Internet')), createObject('name', 'DirectRouteToKMS01', 'properties', createObject('addressPrefix', '23.97.0.13/32', 'hasBgpOverride', true(), 'nextHopType', 'Internet')), createObject('name', 'DirectRouteToKMS02', 'properties', createObject('addressPrefix', '52.126.105.2/32', 'hasBgpOverride', true(), 'nextHopType', 'Internet'))), createArray())]",
+                    "defaultUDRs": "[union(variables('baseUDRs'), variables('commercialCloudUDRs'), variables('governmentCloudUDRs'))]",
                     "snetHosts": [
                       {
                         "name": "[parameters('hostsSubnet').name]",
@@ -1318,7 +1330,7 @@
                       "condition": "[not(empty(parameters('logAnalyticsWorkspaceResourceId')))]",
                       "type": "Microsoft.Insights/diagnosticSettings",
                       "apiVersion": "2021-05-01-preview",
-                      "scope": "[format('Microsoft.Network/networkSecurityGroups/{0}', parameters('nsgName'))]",
+                      "scope": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]",
                       "name": "[format('{0}-diagnosticSettings', parameters('nsgName'))]",
                       "properties": {
                         "logs": [
@@ -1440,8 +1452,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.39.26.7824",
-                              "templateHash": "16912846919175043346"
+                              "version": "0.40.2.10011",
+                              "templateHash": "4398935535765594407"
                             }
                           },
                           "parameters": {
@@ -1534,8 +1546,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.39.26.7824",
-                              "templateHash": "16912846919175043346"
+                              "version": "0.40.2.10011",
+                              "templateHash": "4398935535765594407"
                             }
                           },
                           "parameters": {
@@ -1662,8 +1674,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.39.26.7824",
-              "templateHash": "9786657321248100610"
+              "version": "0.40.2.10011",
+              "templateHash": "7242410930989571129"
             }
           },
           "parameters": {
@@ -1729,8 +1741,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.39.26.7824",
-                      "templateHash": "520324767220429185"
+                      "version": "0.40.2.10011",
+                      "templateHash": "8034762683926821685"
                     }
                   },
                   "parameters": {
@@ -1796,8 +1808,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.39.26.7824",
-                      "templateHash": "1585659650741687107"
+                      "version": "0.40.2.10011",
+                      "templateHash": "18145492010396267493"
                     }
                   },
                   "parameters": {
@@ -1841,8 +1853,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.39.26.7824",
-                              "templateHash": "10423243267782498951"
+                              "version": "0.40.2.10011",
+                              "templateHash": "659625964668236737"
                             }
                           },
                           "parameters": {
