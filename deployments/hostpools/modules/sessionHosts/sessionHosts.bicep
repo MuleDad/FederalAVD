@@ -38,6 +38,7 @@ param encryptionAtHost bool
 param encryptionKeyName string
 param hasAmdGpu bool
 param hasNvidiaGpu bool
+param nvidiaDriverVersion string
 param encryptionKeyVaultResourceId string
 param encryptionKeyVaultUri string
 param existingDiskAccessResourceId string
@@ -307,6 +308,7 @@ module virtualMachines 'modules/virtualMachines.bicep' = [for i in range(1, sess
     hostPoolResourceId: deploymentType != 'SessionHostsOnly' ? hostPoolResourceId : hostPoolUpdate!.outputs.resourceId
     hasAmdGpu: hasAmdGpu
     hasNvidiaGpu: hasNvidiaGpu
+    nvidiaDriverVersion: nvidiaDriverVersion
     identitySolution: identitySolution
     imageOffer: imageOffer
     imagePublisher: imagePublisher
