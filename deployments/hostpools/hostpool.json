@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.40.2.10011",
-      "templateHash": "17106367686222425324"
+      "templateHash": "8651132706170111247"
     }
   },
   "parameters": {
@@ -7992,7 +7992,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.40.2.10011",
-              "templateHash": "3545004318781423587"
+              "templateHash": "1226924443003401605"
             }
           },
           "parameters": {
@@ -9202,7 +9202,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.40.2.10011",
-                      "templateHash": "1353480473359643391"
+                      "templateHash": "2472896736505749373"
                     }
                   },
                   "parameters": {
@@ -10298,6 +10298,45 @@
                           },
                           "storageIndex": {
                             "value": "[parameters('storageIndex')]"
+                          },
+                          "sasExpirationPeriod": {
+                            "value": "180.00:00:00"
+                          },
+                          "allowSharedKeyAccess": "[if(equals(parameters('identitySolution'), 'EntraId'), createObject('value', true()), createObject('value', false()))]",
+                          "allowBlobPublicAccess": {
+                            "value": false
+                          },
+                          "allowCrossTenantReplication": {
+                            "value": false
+                          },
+                          "allowedCopyScope": "[if(parameters('privateEndpoint'), createObject('value', 'PrivateLink'), createObject('value', 'AAD'))]",
+                          "publicNetworkAccess": "[if(parameters('privateEndpoint'), createObject('value', 'Disabled'), createObject('value', 'Enabled'))]",
+                          "networkAcls": {
+                            "value": {
+                              "bypass": "AzureServices",
+                              "defaultAction": "[if(parameters('privateEndpoint'), 'Deny', 'Allow')]"
+                            }
+                          },
+                          "minimumTlsVersion": {
+                            "value": "TLS1_2"
+                          },
+                          "requireInfrastructureEncryption": {
+                            "value": true
+                          },
+                          "fslogixEncryptionKeyNameConv": {
+                            "value": "[parameters('fslogixEncryptionKeyNameConv')]"
+                          },
+                          "largeFileSharesState": "[if(equals(parameters('storageSku'), 'Standard'), createObject('value', 'Enabled'), createObject('value', 'Disabled'))]",
+                          "dnsEndpointType": {
+                            "value": "Standard"
+                          },
+                          "encryption": "[if(not(equals(parameters('keyManagementStorageAccounts'), 'MicrosoftManaged')), createObject('value', createObject('identity', createObject('userAssignedIdentity', parameters('encryptionUserAssignedIdentityResourceId')), 'services', if(equals(parameters('storageSku'), 'Standard'), createObject('blob', createObject('keyType', 'Account', 'enabled', true()), 'file', createObject('keyType', 'Account', 'enabled', true())), createObject('file', createObject('keyType', 'Account', 'enabled', true()))), 'keySource', 'Microsoft.KeyVault', 'keyvaultproperties', createObject('keyname', replace(parameters('fslogixEncryptionKeyNameConv'), '##', '00'), 'keyvaulturi', parameters('encryptionKeyVaultUri')))), createObject('value', createObject()))]",
+                          "identity": "[if(not(equals(parameters('keyManagementStorageAccounts'), 'MicrosoftManaged')), createObject('value', createObject('type', 'UserAssigned', 'userAssignedIdentities', createObject(format('{0}', parameters('encryptionUserAssignedIdentityResourceId')), createObject()))), createObject('value', createObject()))]",
+                          "accessTier": {
+                            "value": "Hot"
+                          },
+                          "tags": {
+                            "value": "[union(createObject('cm-resource-parent', parameters('hostPoolResourceId')), coalesce(tryGet(parameters('tags'), 'Microsoft.Storage/storageAccounts'), createObject()))]"
                           }
                         },
                         "template": {
@@ -10307,7 +10346,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.40.2.10011",
-                              "templateHash": "18290261113262002735"
+                              "templateHash": "16853709970405506777"
                             }
                           },
                           "parameters": {
@@ -10331,12 +10370,91 @@
                             },
                             "location": {
                               "type": "string"
+                            },
+                            "sasExpirationPeriod": {
+                              "type": "string",
+                              "defaultValue": "180.00:00:00"
+                            },
+                            "allowSharedKeyAccess": {
+                              "type": "bool",
+                              "defaultValue": true
+                            },
+                            "allowBlobPublicAccess": {
+                              "type": "bool",
+                              "defaultValue": false
+                            },
+                            "allowCrossTenantReplication": {
+                              "type": "bool",
+                              "defaultValue": false
+                            },
+                            "allowedCopyScope": {
+                              "type": "string",
+                              "defaultValue": "AAD",
+                              "allowedValues": [
+                                "",
+                                "PrivateLink",
+                                "AAD"
+                              ]
+                            },
+                            "publicNetworkAccess": {
+                              "type": "string",
+                              "defaultValue": "Enabled",
+                              "allowedValues": [
+                                "Enabled",
+                                "Disabled"
+                              ]
+                            },
+                            "networkAcls": {
+                              "type": "object",
+                              "defaultValue": {
+                                "bypass": "AzureServices",
+                                "defaultAction": "Allow"
+                              }
+                            },
+                            "minimumTlsVersion": {
+                              "type": "string",
+                              "defaultValue": "TLS1_2"
+                            },
+                            "requireInfrastructureEncryption": {
+                              "type": "bool",
+                              "defaultValue": true
+                            },
+                            "encryption": {
+                              "type": "object",
+                              "defaultValue": {}
+                            },
+                            "identity": {
+                              "type": "object",
+                              "defaultValue": {}
+                            },
+                            "accessTier": {
+                              "type": "string",
+                              "defaultValue": "Hot"
+                            },
+                            "tags": {
+                              "type": "object",
+                              "defaultValue": {}
+                            },
+                            "fslogixEncryptionKeyNameConv": {
+                              "type": "string",
+                              "defaultValue": ""
+                            },
+                            "largeFileSharesState": {
+                              "type": "string",
+                              "defaultValue": "Disabled"
+                            },
+                            "dnsEndpointType": {
+                              "type": "string",
+                              "defaultValue": "Standard"
                             }
+                          },
+                          "variables": {
+                            "encryptionConfig": "[if(empty(parameters('encryption')), createObject('keySource', 'Microsoft.Storage', 'requireInfrastructureEncryption', parameters('requireInfrastructureEncryption'), 'services', createObject('file', createObject('keyType', 'Account', 'enabled', true()), 'blob', if(equals(parameters('kind'), 'StorageV2'), createObject('keyType', 'Account', 'enabled', true()), null()))), union(parameters('encryption'), createObject('requireInfrastructureEncryption', parameters('requireInfrastructureEncryption'))))]"
                           },
                           "resources": [
                             {
                               "copy": {
-                                "name": "configureEntraKerberosWithoutDomainInfoold",
+                                "name": "configureEntraKerberosWithoutDomainInfo",
                                 "count": "[length(range(0, parameters('storageCount')))]"
                               },
                               "type": "Microsoft.Storage/storageAccounts",
@@ -10344,11 +10462,27 @@
                               "name": "[format('{0}{1}', parameters('storageAccountNamePrefix'), string(padLeft(add(range(0, parameters('storageCount'))[copyIndex()], parameters('storageIndex')), 2, '0')))]",
                               "kind": "[parameters('kind')]",
                               "location": "[parameters('location')]",
+                              "identity": "[if(not(empty(parameters('identity'))), parameters('identity'), null())]",
+                              "tags": "[parameters('tags')]",
                               "properties": {
+                                "accessTier": "[if(not(equals(parameters('kind'), 'Storage')), parameters('accessTier'), null())]",
+                                "allowBlobPublicAccess": "[parameters('allowBlobPublicAccess')]",
+                                "allowCrossTenantReplication": "[parameters('allowCrossTenantReplication')]",
+                                "allowedCopyScope": "[if(not(empty(parameters('allowedCopyScope'))), parameters('allowedCopyScope'), null())]",
+                                "allowSharedKeyAccess": "[parameters('allowSharedKeyAccess')]",
                                 "azureFilesIdentityBasedAuthentication": {
                                   "defaultSharePermission": "[parameters('defaultSharePermission')]",
                                   "directoryServiceOptions": "AADKERB"
-                                }
+                                },
+                                "defaultToOAuthAuthentication": false,
+                                "dnsEndpointType": "[parameters('dnsEndpointType')]",
+                                "encryption": "[if(and(not(empty(parameters('encryption'))), contains(parameters('encryption'), 'keyvaultproperties')), union(variables('encryptionConfig'), createObject('keyvaultproperties', createObject('keyname', if(not(empty(parameters('fslogixEncryptionKeyNameConv'))), replace(parameters('fslogixEncryptionKeyNameConv'), '##', padLeft(add(range(0, parameters('storageCount'))[copyIndex()], parameters('storageIndex')), 2, '0')), parameters('encryption').keyvaultproperties.keyname), 'keyvaulturi', parameters('encryption').keyvaultproperties.keyvaulturi))), variables('encryptionConfig'))]",
+                                "largeFileSharesState": "[parameters('largeFileSharesState')]",
+                                "minimumTlsVersion": "[parameters('minimumTlsVersion')]",
+                                "networkAcls": "[parameters('networkAcls')]",
+                                "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+                                "sasPolicy": "[if(not(empty(parameters('sasExpirationPeriod'))), createObject('expirationAction', 'Log', 'sasExpirationPeriod', parameters('sasExpirationPeriod')), null())]",
+                                "supportsHttpsTrafficOnly": true
                               },
                               "sku": {
                                 "name": "[parameters('skuName')]"

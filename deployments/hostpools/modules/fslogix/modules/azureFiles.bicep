@@ -327,6 +327,55 @@ module configureEntraKerberosWithoutDomainInfo 'azureFilesEntraKerberosWithoutDo
     storageAccountNamePrefix: storageAccountNamePrefix
     storageCount: storageCount
     storageIndex: storageIndex
+    // Pass additional properties to satisfy policy requirements
+    sasExpirationPeriod: '180.00:00:00'
+    allowSharedKeyAccess: identitySolution == 'EntraId' ? true : false
+    allowBlobPublicAccess: false
+    allowCrossTenantReplication: false
+    allowedCopyScope: privateEndpoint ? 'PrivateLink' : 'AAD'
+    publicNetworkAccess: privateEndpoint ? 'Disabled' : 'Enabled'
+    networkAcls: {
+      bypass: 'AzureServices'
+      defaultAction: privateEndpoint ? 'Deny' : 'Allow'
+    }
+    minimumTlsVersion: 'TLS1_2'
+    requireInfrastructureEncryption: true
+    fslogixEncryptionKeyNameConv: fslogixEncryptionKeyNameConv
+    largeFileSharesState: storageSku == 'Standard' ? 'Enabled' : 'Disabled'
+    dnsEndpointType: 'Standard'
+    encryption: keyManagementStorageAccounts != 'MicrosoftManaged' ? {
+      identity: {
+        userAssignedIdentity: encryptionUserAssignedIdentityResourceId
+      }
+      services: storageSku == 'Standard' ? {
+        blob: {
+          keyType: 'Account'
+          enabled: true
+        }
+        file: {
+          keyType: 'Account'
+          enabled: true
+        }
+      } : {
+        file: {
+          keyType: 'Account'
+          enabled: true
+        }
+      }
+      keySource: 'Microsoft.KeyVault'
+      keyvaultproperties: {
+        keyname: replace(fslogixEncryptionKeyNameConv, '##', '00') // Placeholder, will be replaced per storage account
+        keyvaulturi: encryptionKeyVaultUri
+      }
+    } : {}
+    identity: keyManagementStorageAccounts != 'MicrosoftManaged' ? {
+      type: 'UserAssigned'
+      userAssignedIdentities: {
+        '${encryptionUserAssignedIdentityResourceId}': {}
+      }
+    } : {}
+    accessTier: 'Hot'
+    tags: union({ 'cm-resource-parent': hostPoolResourceId }, tags[?'Microsoft.Storage/storageAccounts'] ?? {})
   }
   dependsOn: [
     privateEndpoints
