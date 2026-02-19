@@ -10,6 +10,8 @@ This solution supports **Entra Kerberos** for Azure Files, allowing you to use A
 
 The session hosts are joined to Entra ID, and user identities are synchronized from the on-premises domain to Entra ID.
 
+For the official Microsoft documentation see [Enable Microsoft Entra Kerberos Authentication for hybrid and cloud-only identities on Azure Files](https://learn.microsoft.com/en-us/azure/storage/files/storage-files-identity-auth-hybrid-identities-enable?tabs=azure-portal%2Cintune).
+
 > [!IMPORTANT]
 > If you wish to configure least privilege NTFS permissions or shard storage, the session host subnet (to which the deployment VM is attached) must have line-of-sight to a Domain Controller. Additionally, domain join credentials must be provided in order to configure the required NTFS permissions using the user assigned managed identity.
 
@@ -54,9 +56,16 @@ $SubscriptionId = "<Your Subscription ID>"
 $ResourceGroupName = "<Your Resource Group Name>"
 $IdentityName = "id-avd-storage-automation"
 $Location = "<Region>"
+$Environment = "AzureCloud" # Options: AzureCloud, AzureUSGovernment
+
+# Set Microsoft Graph environment based on Azure environment
+$graphEnvironment = switch ($Environment) {
+    "AzureUSGovernment" { "USGov" }
+    default { "Global" }
+}
 
 # Connect to Azure
-Connect-AzAccount
+Connect-AzAccount -Environment $Environment
 Set-AzContext -SubscriptionId $SubscriptionId
 
 # 1. Create the User Assigned Managed Identity
@@ -69,7 +78,7 @@ Write-Host "Identity Created: $($identity.Name)"
 
 # 2. Assign Graph Permissions
 # Connect to Microsoft Graph
-Connect-MgGraph -Scopes "AppRoleAssignment.ReadWrite.All", "Application.Read.All"
+Connect-MgGraph -Scopes "AppRoleAssignment.ReadWrite.All", "Application.Read.All" -Environment $graphEnvironment
 
 $sp = Get-MgServicePrincipal -Filter "AppId eq '$($identity.ClientId)'"
 $graphSPN = Get-MgServicePrincipal -Filter "AppId eq '00000003-0000-0000-c000-000000000000'"
@@ -145,7 +154,7 @@ Regardless of whether you use the Managed Identity or not, the following step is
 * **MFA Exclusion**[^5]: The storage account application(s) must be excluded from Conditional Access policies requiring MFA.
     1. Navigate to **Entra ID > Security > Conditional Access**.
     2. Identify policies that enforce MFA for all cloud apps or specific apps.
-    3. Exclude the storage account application (Service Principal) created by the deployment.
+    3. Exclude the storage account application (Service Principal) created by the deployment. The storage account app should have the same name as the storage account in the conditional access exclusion list. When searching for the storage account app in the conditional access exclusion list, search for: [Storage Account] <your-storage-account-name>.file.<environmentSuffix>. Remember to replace <your-storage-account-name> with the proper value.
 
 [^1]: [Grant Admin Consent to the New Service Principal](https://learn.microsoft.com/en-us/azure/storage/files/storage-files-identity-auth-hybrid-identities-enable?tabs=azure-portal%2Cregkey#grant-admin-consent-to-the-new-service-principal)
 [^2]: [Update the identifier Uris](https://learn.microsoft.com/en-us/troubleshoot/azure/azure-storage/files/security/files-troubleshoot-smb-authentication?toc=%2Fazure%2Fstorage%2Ffiles%2Ftoc.json&tabs=azure-portal#error-1326---the-username-or-password-is-incorrect-when-using-private-link)
