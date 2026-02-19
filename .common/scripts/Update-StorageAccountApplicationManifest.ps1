@@ -222,7 +222,10 @@ try {
 
                 foreach ($identifierUri in $currentUris) {
                     # Check for standard file endpoint pattern (works across clouds: windows.net, usgovcloudapi.net, etc.)
-                    if ($identifierUri -match '\.file\.core\.' -and $identifierUri -notmatch '\.privatelink\.file\.core\.') {
+                    # Only process URIs that have a proper scheme (api://, http://, https://) to comply with Azure AD policy
+                    if ($identifierUri -match '\.file\.core\.' -and 
+                        $identifierUri -notmatch '\.privatelink\.file\.core\.' -and
+                        $identifierUri -match '^(api|http|https)://') {
                         # Insert .privatelink before .file.core.
                         $privateLinkUri = $identifierUri -replace '\.file\.core\.', '.privatelink.file.core.'
                         

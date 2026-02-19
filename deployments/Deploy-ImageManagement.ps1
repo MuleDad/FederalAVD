@@ -164,6 +164,22 @@ if ((!$SkipDownloadingNewSources) -and (Test-Path -Path $downloadFilePath)) {
     catch {
         Write-Error "Configuration JSON content could not be converted to a PowerShell object" -ErrorAction 'Stop'
     }
+    
+    # Check if any download requires Evergreen and install if needed
+    $RequiresEvergreen = $false
+    foreach ($key in $Downloads.PSObject.Properties.Name) {
+        if ($null -ne $Downloads.$key.Evergreen) {
+            $RequiresEvergreen = $true
+            break
+        }
+    }
+    
+    If ($RequiresEvergreen -and ($Environment -eq 'AzureCloud' -or $Environment -eq 'AzureUSGovernment')) {
+        Write-Output "Evergreen functionality detected in downloads configuration. Installing Evergreen module..."
+        . "$FunctionsPath\Storage\Evergreen.ps1"
+        Install-Evergreen
+    }
+    
     foreach ($key in $Downloads.PSObject.Properties.Name) {
         $Download = $Downloads.$key
         $SoftwareName = $key
@@ -204,6 +220,11 @@ if ((!$SkipDownloadingNewSources) -and (Test-Path -Path $downloadFilePath)) {
             $ReleasesUri = "https://api.github.com/repos/$Repo/releases/latest"
             Write-Output "Retrieving the url of the latest version from '$Repo' Github repo."
             $DownloadUrl = ((Invoke-RestMethod -Method GET -Uri $ReleasesUri).assets | Where-Object name -like $FileNamePattern).browser_download_url
+        }
+        Elseif($null -ne $Download.Evergreen) {
+            Write-Output "Retrieving the url of the latest version from Evergreen."
+            Write-Output "Evergreen Configuration: $($Download.Evergreen)"
+            $DownloadUrl = Get-EvergreenAppUri -Evergreen $Download.Evergreen
         }      
 
         If (($DownloadUrl -ne '') -and ($null -ne $DownloadUrl)) {
