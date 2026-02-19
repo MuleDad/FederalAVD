@@ -12,7 +12,7 @@ ForEach ($Prefix in $ParameterFilePrefixes) {
     If (Test-Path -Path $ParameterFile) {
         Write-Output "Using parameter file: $ParameterFile"
         $Date = Get-Date -Format 'yyyyMMddhhmmss'
-        $DeploymentJob = New-AzDeployment -Name "ImageBuild-$Prefix-$Date" -Location 'eastus2' -TemplateFile (Join-Path -Path $PSScriptRoot -ChildPath 'imageBuild\imageBuild.json') -TemplateParameterFile $ParameterFile -AsJob 
+        $DeploymentJob = New-AzDeployment -Name "ImageBuild-$Prefix-$Date" -Location $Location -TemplateFile (Join-Path -Path $PSScriptRoot -ChildPath 'imageBuild\imageBuild.json') -TemplateParameterFile $ParameterFile -AsJob 
         Start-Sleep -Seconds 1
     }
     else {
