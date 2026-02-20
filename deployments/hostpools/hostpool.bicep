@@ -310,6 +310,9 @@ param enableIPv6 bool = false
 @description('Optional. Determines whether or not to enable hibernation for the session host VMs.')
 param hibernationEnabled bool = false
 
+@description('Optional. The NVIDIA driver version to install on NVv3 series VMs. GRID Driver version 17.x is incompatible on NVv3 (NVIDIA Tesla M60). Use driver version 538.46 or other supported versions. Reference: https://learn.microsoft.com/en-us/azure/virtual-machines/extensions/hpccompute-gpu-windows#known-issues')
+param nvidiaDriverVersion string = '538.46'
+
 @allowed([
   'AvailabilitySets'
   'AvailabilityZones'
@@ -1374,6 +1377,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     encryptionAtHost: encryptionAtHost
     hasAmdGpu: hasAmdGpu
     hasNvidiaGpu: hasNvidiaGpu
+    nvidiaDriverVersion: nvidiaDriverVersion
     encryptionKeyName: confidentialVMOSDiskEncryption
       ? resourceNames.outputs.encryptionKeyNames.confidentialVMs
       : resourceNames.outputs.encryptionKeyNames.virtualMachines

@@ -95,13 +95,14 @@ resource storageAccounts 'Microsoft.Storage/storageAccounts@2022-09-01' = [
       allowCrossTenantReplication: false
       allowedCopyScope: privateEndpoint ? 'PrivateLink' : 'AAD'
       allowSharedKeyAccess: identitySolution == 'EntraId' ? true : false
-      azureFilesIdentityBasedAuthentication: identitySolution != 'EntraId' && !contains(
-          identitySolution,
-          'EntraKerberos'
-        )
+      azureFilesIdentityBasedAuthentication: identitySolution != 'EntraId'
         ? {
             defaultSharePermission: defaultSharePermission
-            directoryServiceOptions: identitySolution == 'EntraDomainServices' ? 'AADDS' : 'None'
+            directoryServiceOptions: contains(identitySolution, 'EntraKerberos')
+              ? 'AADKERB'
+              : identitySolution == 'EntraDomainServices'
+                ? 'AADDS'
+                : 'None'
           }
         : null
       defaultToOAuthAuthentication: false
@@ -317,23 +318,6 @@ module configureEntraKerberosWithDomainInfo 'azureFilesEntraKerberosWithDomainIn
   ]
 }
 
-module configureEntraKerberosWithoutDomainInfo 'azureFilesEntraKerberosWithoutDomainInfo.bicep' = if (identitySolution == 'EntraKerberos-CloudOnly' || (identitySolution == 'EntraKerberos-Hybrid' && (empty(domainName) || empty(domainJoinUserPassword) || empty(domainJoinUserPrincipalName)))) {
-  name: 'Configure-Entra-Kerberos-${deploymentSuffix}'
-  params: {
-    defaultSharePermission: defaultSharePermission
-    location: location
-    kind: storageSku == 'Standard' ? 'StorageV2' : 'FileStorage'
-    skuName: '${storageSku}${storageRedundancy}'
-    storageAccountNamePrefix: storageAccountNamePrefix
-    storageCount: storageCount
-    storageIndex: storageIndex
-  }
-  dependsOn: [
-    privateEndpoints
-    shares
-  ]
-}
-
 // PHASE 1: Update application manifest with privatelink FQDNs and tags
 // This must happen BEFORE NTFS permissions are set so authentication works through private endpoints
 module updateStorageApplicationsManifest 'updateEntraIdStorageKerbAppsManifest.bicep' = if (((identitySolution == 'EntraKerberos-Hybrid' && privateEndpoint) || (identitySolution == 'EntraKerberos-CloudOnly')) && !empty(appUpdateUserAssignedIdentityResourceId)) {
@@ -351,7 +335,6 @@ module updateStorageApplicationsManifest 'updateEntraIdStorageKerbAppsManifest.b
     privateEndpoints
     shares
     configureEntraKerberosWithDomainInfo
-    configureEntraKerberosWithoutDomainInfo
   ]
 }
 
@@ -373,7 +356,6 @@ module SetNTFSPermissions 'setNTFSPermissionsAzureFiles.bicep' = {
     privateEndpoints
     shares
     configureEntraKerberosWithDomainInfo
-    configureEntraKerberosWithoutDomainInfo
     configureADDSAuth
     updateStorageApplicationsManifest
   ]
