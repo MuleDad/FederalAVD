@@ -692,11 +692,33 @@ Describe 'Image Build Run Command capacity protection' {
         $customizeModule | Should Match 'var customizationBatchSize = 20'
     }
 
-    It 'names each customization deployment after its customizer type without truncation collisions' {
+    It 'isolates customization deployment names by build VM, phase, batch, and full customizer name' {
         $batchModule = Get-Content -LiteralPath $batchModulePath -Raw
-        $batchModule | Should Match "batchContext == 'vdi' \? 'vdiCustomizer' : 'customizer'"
-        $batchModule.Contains("'`${customization.name}-`${customizationDeploymentSuffix}'") | Should Be $true
-        $batchModule | Should Match 'uniqueString\(customization\.name\)'
-        $batchModule | Should Not Match "name: 'apply-\`\$\{batchContext\}"
+        $expectedName = 'name: ''${take(customization.name, 50)}-${uniqueString(resourceGroup().id, imageVmName, batchContext, string(batchIndex), customization.name)}'''
+        $batchModule.Contains($expectedName) | Should Be $true
+        $batchModule | Should Not Match 'customizationDeploymentSuffix'
+        $customizeModule = Get-Content -LiteralPath $customizeModulePath -Raw
+        $customizeModule | Should Match "batchContext: 'custom'"
+        $customizeModule | Should Match "batchContext: 'vdi'"
+    }
+
+    It 'compiles both customization phases to readable deployment names with a full-name hash' {
+        $armTemplate = Get-Content -LiteralPath (Join-Path $repoRoot 'deployments\imageBuild\imageBuild.json') -Raw
+        $expectedName = "[format('{0}-{1}', take(parameters('customizations')[copyIndex()].name, 50), uniqueString(resourceGroup().id, parameters('imageVmName'), parameters('batchContext'), string(parameters('batchIndex')), parameters('customizations')[copyIndex()].name))]"
+        $namePattern = '"name":\s*"' + [regex]::Escape($expectedName) + '"'
+        [regex]::Matches($armTemplate, $namePattern).Count | Should Be 2
+    }
+
+    It 'preserves short readable names and bounds long deployment names at 64 characters' {
+        foreach ($customizerName in @('windows-11-rsat', ('A' * 49), ('A' * 50), ('A' * 51), ('A' * 80))) {
+            $prefixLength = [Math]::Min($customizerName.Length, 50)
+            $deploymentName = '{0}-{1}' -f $customizerName.Substring(0, $prefixLength), '123456789abcd'
+            ($deploymentName.Length -le 64) | Should Be $true
+            if ($customizerName.Length -le 50) {
+                $deploymentName | Should Be "$customizerName-123456789abcd"
+            } else {
+                $deploymentName.Length | Should Be 64
+            }
+        }
     }
 }
